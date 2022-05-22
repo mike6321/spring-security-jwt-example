@@ -14,6 +14,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,11 +28,11 @@ public class TokenProvider implements InitializingBean {
 
     private static final String AUTHORITIES_KEY = "auth";
     private final String secret;
-    private final String tokenValidityInSeconds;
+    private final long tokenValidityInSeconds;
     private Key key;
 
     public TokenProvider(@Value("${jwt.secret}") String secret,
-                         @Value("${jwt.token-validity-in-seconds}")String tokenValidityInSeconds) {
+                         @Value("${jwt.token-validity-in-seconds}")long tokenValidityInSeconds) {
         this.secret = secret;
         this.tokenValidityInSeconds = tokenValidityInSeconds;
     }
@@ -45,8 +48,8 @@ public class TokenProvider implements InitializingBean {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
-        long now = new Date().getTime();
-        Date validity = new Date(now + this.tokenValidityInSeconds);
+        long nowPlus = (new Date()).getTime() + this.tokenValidityInSeconds;
+        Date validity = new Date(nowPlus);
         return Jwts
                 .builder()
                 .setSubject(authentication.getName())
